@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { test } from '../../fixtures/register-page.fixture';
+import * as allure from 'allure-js-commons';
 
 [
   'foo',
@@ -14,12 +15,17 @@ import { test } from '../../fixtures/register-page.fixture';
   '      foobat@mail.ru     ',
 ].forEach((wrongEmail) =>
   test(`Check that email: ${wrongEmail} is not valid`, async ({ registerPage }) => {
-    await registerPage.fillEmail(wrongEmail);
-    await registerPage.fillPassword('password');
-    await registerPage.fillAge('25');
-    await registerPage.clickSubmitRegisterBtn();
+    await allure.parameter('wrongEmail', wrongEmail);
 
-    const wrongEmailText = await registerPage.expectWrongEmailTextToBeVisibleAndGetText();
-    expect(wrongEmailText).toEqual('Неправильный email-адрес');
+    await test.step('Заполнить почту некорретным значением', async () =>
+      await registerPage.fillEmail(wrongEmail));
+    await test.step('Заполнить пароль', async () => await registerPage.fillPassword('password'));
+    await test.step('Заполнить возраст', async () => await registerPage.fillAge('25'));
+    await test.step('Нажать на кнопку подтверждения регистрации', async () =>
+      await registerPage.clickSubmitRegisterBtn());
+    await test.step('Проверить, что появилось сообщение с ошибкой "Неправильный email-адрес"', async () => {
+      const wrongEmailText = await registerPage.expectWrongEmailTextToBeVisibleAndGetText();
+      expect(wrongEmailText).toEqual('Неправильный email-адрес');
+    });
   }),
 );

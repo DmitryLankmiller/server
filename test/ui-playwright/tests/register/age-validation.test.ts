@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { test } from '../../fixtures/register-page.fixture';
+import * as allure from 'allure-js-commons';
 
 [
   { wrongAge: '100', errorMessage: 'Возраст должен быть в пределах 0-99' },
@@ -18,12 +19,18 @@ import { test } from '../../fixtures/register-page.fixture';
   },
 ].forEach(({ wrongAge, errorMessage }) =>
   test(`Check that age: ${wrongAge} is not valid`, async ({ registerPage }) => {
-    await registerPage.fillEmail('test@mail.ru');
-    await registerPage.fillPassword('password');
-    await registerPage.fillAge(wrongAge);
-    await registerPage.clickSubmitRegisterBtn();
+    await allure.parameter('wrongAge', wrongAge);
+    await allure.parameter('expectedErrorMessage', errorMessage);
 
-    const wrongAgeText = await registerPage.expectWrongAgeTextToBeVisibleAndGetText();
-    expect(wrongAgeText).toEqual(errorMessage);
+    await test.step('Заполнить почту', async () => await registerPage.fillEmail('test@mail.ru'));
+    await test.step('Заполнить пароль', async () => await registerPage.fillPassword('password'));
+    await test.step('Заполнить возраст некорретным значением', async () =>
+      await registerPage.fillAge(wrongAge));
+    await test.step('Нажать на кнопку подтверждения регистрации', async () =>
+      await registerPage.clickSubmitRegisterBtn());
+    await test.step(`Проверить, что появилось сообщение с ошибкой "${errorMessage}"`, async () => {
+      const wrongAgeText = await registerPage.expectWrongAgeTextToBeVisibleAndGetText();
+      expect(wrongAgeText).toEqual(errorMessage);
+    });
   }),
 );

@@ -1,6 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { ProfilePage } from './profile.page';
 
 export class CheckShockPage extends BasePage {
   private readonly emailInput: Locator;
